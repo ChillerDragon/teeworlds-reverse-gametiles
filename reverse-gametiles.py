@@ -62,10 +62,13 @@ for (y, x, flags), tile in numpy.ndenumerate(m.game_layer().tiles):
     if progress % 100 == 0:
         print(x, y)
     if flags == 0:
+        # TODO: use smart default indecies here to place
+        #       for example use shadow for freeze if tileset name is grass_main
+        #       use index 41 if tileset is generic_unhookable
         if tile == GAME_COLLISION and args['collision']:
             edited_collision[y][x][flags] = 1
         elif tile == GAME_UNHOOK and args['unhook']:
-            edited_unhook[y][x][flags] = 1
+            edited_unhook[y][x][flags] = 41
         elif tile == GAME_FREEZE and args['freeze']:
             edited_freeze[y][x][flags] = 1
 
