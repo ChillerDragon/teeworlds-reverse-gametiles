@@ -13,7 +13,7 @@ Given a teeworlds map that has only gametiles placed and a few tile layers ready
 
 
 Run the ``reverse-gametiles.py`` script and pass in which layers to use as argument.
-The collision layer in this case is grass_main which is in 3rd layer in the 2nd group.
+The collision layer in this case is grass_main which is the 3rd layer in the 2nd group.
 But since this script is for nerds we start counting from zero. So to place a grass_main tile
 on every collision tile from the game layer we use ``--collision 1:2`` fromat being ``group:layer``.
 We do the same for the freeze which is the 2nd layer in the 2nd group so we use ``--freeze 1:1``.
