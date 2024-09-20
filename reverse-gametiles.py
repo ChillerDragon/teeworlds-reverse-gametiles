@@ -37,10 +37,16 @@ for arg in args:
 
 m = twmap.Map(args['INPUT_MAP'])
 
+collision_layer = -1
+collision_group = -1
+unhook_group = -1
+unhook_layer = -1
+freeze_group = -1
+freeze_layer = -1
+
 if args['collision']:
     collision_group = int(args['collision'].split(':')[0])
     collision_layer = int(args['collision'].split(':')[1])
-    edited_collision = m.groups[collision_group].layers[collision_layer].tiles
 if args['unhook']:
     unhook_group = int(args['unhook'].split(':')[0])
     unhook_layer = int(args['unhook'].split(':')[1])
@@ -50,6 +56,18 @@ if args['freeze']:
     freeze_layer = int(args['freeze'].split(':')[1])
     edited_freeze = m.groups[freeze_group].layers[freeze_layer].tiles
 
+edited_collision = None
+edited_unhook = None
+edited_freeze = None
+
+if collision_layer != -1:
+    edited_collision = m.groups[collision_group].layers[collision_layer].tiles
+
+if unhook_layer != -1:
+    edited_unhook = m.groups[unhook_group].layers[unhook_layer].tiles
+
+if freeze_layer != -1:
+    edited_freeze = m.groups[freeze_group].layers[freeze_layer].tiles
 
 GAME_COLLISION = 1
 GAME_DEATH = 2
@@ -65,18 +83,18 @@ for (y, x, flags), tile in numpy.ndenumerate(m.game_layer().tiles):
         # TODO: use smart default indecies here to place
         #       for example use shadow for freeze if tileset name is grass_main
         #       use index 41 if tileset is generic_unhookable
-        if tile == GAME_COLLISION and args['collision']:
+        if tile == GAME_COLLISION and edited_collision:
             edited_collision[y][x][flags] = 1
-        elif tile == GAME_UNHOOK and args['unhook']:
+        elif tile == GAME_UNHOOK and edited_unhook:
             edited_unhook[y][x][flags] = 41
-        elif tile == GAME_FREEZE and args['freeze']:
+        elif tile == GAME_FREEZE and edited_freeze:
             edited_freeze[y][x][flags] = 1
 
-if args['collision']:
+if edited_collision:
     m.groups[collision_group].layers[collision_layer].tiles = edited_collision
-if args['unhook']:
+if edited_unhook:
     m.groups[unhook_group].layers[unhook_layer].tiles = edited_unhook
-if args['freeze']:
+if edited_freeze:
     m.groups[freeze_group].layers[freeze_layer].tiles = edited_freeze
 
 m.save(args['OUTPUT_MAP'])
