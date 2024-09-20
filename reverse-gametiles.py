@@ -35,6 +35,35 @@ for arg in args:
             print("Error: {} layer position has to be in format \"group_index:layer_index\"".format(arg))
             sys.exit(1)
 
+def guess_collision(m) -> int:
+    global collision_layer
+    global collision_group
+    g_candidate = None
+    l_candidate = None
+    gi = -1
+    for group in m.groups:
+        gi += 1
+        li = -1
+        for layer in group.layers:
+            li += 1
+            if layer.kind() != 'Tiles':
+                continue
+            if layer.image is None:
+                continue
+            if m.images[layer.image].name == 'grass_main':
+                if g_candidate is not None:
+                    print("failed to guess collision too many candidates")
+                    return 1
+                g_candidate = gi
+                l_candidate = li
+    if g_candidate:
+        print("found grass_main layer")
+        collision_layer = l_candidate
+        collision_group = g_candidate
+        return 1
+    print("failed to guess collision no candidates")
+    return 1
+
 m = twmap.Map(args['INPUT_MAP'])
 
 collision_layer = -1
@@ -60,6 +89,13 @@ edited_collision = None
 edited_unhook = None
 edited_freeze = None
 
+coll_index = 1
+
+# no arg given try to detect it
+if collision_layer == -1:
+    print("no collision layer specified. trying to gues ...")
+    coll_index = guess_collision(m)
+
 if collision_layer != -1:
     edited_collision = m.groups[collision_group].layers[collision_layer].tiles
 
@@ -83,14 +119,14 @@ for (y, x, flags), tile in numpy.ndenumerate(m.game_layer().tiles):
         # TODO: use smart default indecies here to place
         #       for example use shadow for freeze if tileset name is grass_main
         #       use index 41 if tileset is generic_unhookable
-        if tile == GAME_COLLISION and edited_collision:
-            edited_collision[y][x][flags] = 1
-        elif tile == GAME_UNHOOK and edited_unhook:
+        if tile == GAME_COLLISION and edited_collision is not None:
+            edited_collision[y][x][flags] = coll_index
+        elif tile == GAME_UNHOOK and edited_unhook is not None:
             edited_unhook[y][x][flags] = 41
-        elif tile == GAME_FREEZE and edited_freeze:
+        elif tile == GAME_FREEZE and edited_freeze is not None:
             edited_freeze[y][x][flags] = 1
 
-if edited_collision:
+if edited_collision is not None:
     m.groups[collision_group].layers[collision_layer].tiles = edited_collision
 if edited_unhook:
     m.groups[unhook_group].layers[unhook_layer].tiles = edited_unhook
